@@ -1,6 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, flash, render_template, redirect, url_for, request
+from . import db
+from .models import User
+from flask_login import login_user, logout_user, login_required
 
 auth = Blueprint('auth', __name__)
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -8,13 +12,37 @@ def login():
     password = request.form.get('password')
     return render_template('login.html')
 
+
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
-    email = request.form.get('email')
-    username = request.form.get('username')
-    password1 = request.form.get('password1')
-    password2 = request.form.get('password2')
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password1 = request.form.get('password1')
+        password2 = request.form.get('password2')
+
+        email_exists = User.query.filter_by(email=email).first()
+        username_exists = User.query.filter_by(username=username).first()
+        
+        if email_exists:
+            flash("Email is alreay exists!", category='error')
+        elif username_exists:
+            flash("Username is already exists!", category='error')
+        elif password1 != password2:
+            flash("Password don't match", category='error')
+        elif len(username) < 2:
+            flash('Username is too short!', category="error")
+        elif len(password1) < 6:
+            flash("Password is too short!", category="error")
+        else:
+            new_user = User(email=email, username=username, password=password1)
+            db.session.add(new_user)
+            db.session.commit()
+            flash('User created successfully!', category='success')
+            return redirect(url_for('views.home'))
+
     return render_template('signup.html')
+
 
 @auth.route('/logout')
 def logout():
