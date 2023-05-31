@@ -55,6 +55,7 @@ def posts(username):
     if not user:
         flash('No user with that username exists.', category='danger')
         return redirect(url_for('views.home'))
-    posts = Post.query.filter_by(author=user.id).all()
+
+    posts = user.posts
 
     return render_template('posts.html', user=current_user, posts=posts, username=username)
