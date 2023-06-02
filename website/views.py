@@ -93,3 +93,21 @@ def delete_comment(comment_id):
         db.session.commit()
 
     return redirect(url_for('views.home'))
+
+
+@views.route('like-post/<post_id>', methods=['POST'])
+@login_required
+def like(post_id):
+    post = Post.query.filter_by(id=post_id)
+    like = like.query.filter_by(author=current_user.id, post_id=post_id).first()
+
+    if not post:
+        flash('Post does not exist!', category='danger')
+    elif like:
+        db.session.delete(like)
+        db.session.commit()
+    else:
+        db.session.add(like)
+        db.session.commit()
+
+    return redirect(url_for('views.home'))
