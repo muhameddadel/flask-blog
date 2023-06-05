@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from .models import Post, User, Comment, Like
 from . import db
@@ -102,7 +102,7 @@ def like(post_id):
     like = Like.query.filter_by(author=current_user.id, post_id=post_id).first()
 
     if not post:
-        flash('Post does not exist!', category='danger')
+        return jsonify({'error': 'Post does not exist.'}, 400)
     elif like:
         db.session.delete(like)
         db.session.commit()
@@ -111,4 +111,4 @@ def like(post_id):
         db.session.add(like)
         db.session.commit()
 
-    return redirect(url_for('views.home'))
+    return jsonify({"likes": len(post.likes), "liked": current_user.id in map(lambda x: x.author, post.likes)})
